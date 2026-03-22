@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -58,6 +59,7 @@ fun DashboardScreen(
         DashboardContent(
             uiState = uiState,
             onMissionSelected = { viewModel.onMissionSelected(it) },
+            onDeleteExpense = { viewModel.deleteExpense(it) },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -69,6 +71,7 @@ fun DashboardScreen(
 fun DashboardContent(
     uiState: DashboardUiState,
     onMissionSelected: (Long?) -> Unit,
+    onDeleteExpense: (Expense) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -93,7 +96,10 @@ fun DashboardContent(
             )
         }
         items(uiState.expenses) { expense ->
-            ExpenseItem(expense)
+            ExpenseItem(
+                expense = expense,
+                onDelete = { onDeleteExpense(expense) }
+            )
         }
     }
 }
@@ -211,7 +217,10 @@ fun CategorySummaryItem(label: String, amount: Double, icon: ImageVector) {
 }
 
 @Composable
-fun ExpenseItem(expense: Expense) {
+fun ExpenseItem(
+    expense: Expense,
+    onDelete: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -223,7 +232,7 @@ fun ExpenseItem(expense: Expense) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 val icon = when (expense.category) {
                     "Transport" -> Icons.Default.Train
                     "Food" -> Icons.Default.Fastfood
@@ -258,12 +267,21 @@ fun ExpenseItem(expense: Expense) {
                     )
                 }
             }
-            Text(
-                text = "-$${String.format("%.2f", expense.amount)}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "-$${String.format("%.2f", expense.amount)}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete Expense",
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+                    )
+                }
+            }
         }
     }
 }
@@ -288,7 +306,8 @@ fun DashboardPreview() {
                 totalFood = 15.5,
                 totalHotel = 120.0
             ),
-            onMissionSelected = {}
+            onMissionSelected = {},
+            onDeleteExpense = {}
         )
     }
 }

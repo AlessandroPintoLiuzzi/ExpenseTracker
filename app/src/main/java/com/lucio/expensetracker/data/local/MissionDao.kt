@@ -8,6 +8,9 @@ interface MissionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMission(mission: MissionEntity)
 
+    @Update
+    suspend fun updateMission(mission: MissionEntity)
+
     @Delete
     suspend fun deleteMission(mission: MissionEntity)
 

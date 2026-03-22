@@ -8,10 +8,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.lucio.expensetracker.domain.model.Mission
@@ -26,6 +29,8 @@ fun MissionsScreen(
 ) {
     val missions by viewModel.missions.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
+    var editingMission by remember { mutableStateOf<Mission?>(null) }
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -54,13 +59,16 @@ fun MissionsScreen(
             items(missions) { mission ->
                 MissionItem(
                     mission = mission,
-                    onDelete = { viewModel.deleteMission(mission) }
+                    onEdit = { editingMission = mission },
+                    onDelete = { viewModel.deleteMission(mission) },
+                    onGeneratePdf = { viewModel.generatePdfForMission(context, mission) }
                 )
             }
         }
 
         if (showAddDialog) {
-            AddMissionDialog(
+            MissionDialog(
+                title = "Add New Mission",
                 onDismiss = { showAddDialog = false },
                 onConfirm = { name, start, end ->
                     viewModel.addMission(name, start, end)
@@ -68,11 +76,31 @@ fun MissionsScreen(
                 }
             )
         }
+
+        editingMission?.let { mission ->
+            MissionDialog(
+                title = "Update Mission",
+                initialName = mission.name,
+                initialStartDate = mission.startDate,
+                initialEndDate = mission.endDate,
+                confirmLabel = "Update",
+                onDismiss = { editingMission = null },
+                onConfirm = { name, start, end ->
+                    viewModel.updateMission(mission.copy(name = name, startDate = start, endDate = end))
+                    editingMission = null
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun MissionItem(mission: Mission, onDelete: () -> Unit) {
+fun MissionItem(
+    mission: Mission,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onGeneratePdf: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -106,12 +134,28 @@ fun MissionItem(mission: Mission, onDelete: () -> Unit) {
                     )
                 }
             }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.error
-                )
+            Row {
+                IconButton(onClick = onGeneratePdf) {
+                    Icon(
+                        Icons.Default.PictureAsPdf,
+                        contentDescription = "Generate PDF",
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                IconButton(onClick = onEdit) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }
@@ -119,18 +163,23 @@ fun MissionItem(mission: Mission, onDelete: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddMissionDialog(
+fun MissionDialog(
+    title: String,
+    initialName: String = "",
+    initialStartDate: Long = System.currentTimeMillis(),
+    initialEndDate: Long = System.currentTimeMillis() + 86400000 * 7,
+    confirmLabel: String = "Add",
     onDismiss: () -> Unit,
     onConfirm: (String, Long, Long) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    // In a real app, use a DatePicker. For simplicity, we'll use current time.
-    val startDate = System.currentTimeMillis()
-    val endDate = startDate + 86400000 * 7 // Default 1 week
+    var name by remember { mutableStateOf(initialName) }
+    // In a real app, use a DatePicker.
+    val startDate = initialStartDate
+    val endDate = initialEndDate
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add New Mission") },
+        title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -150,7 +199,7 @@ fun AddMissionDialog(
                 onClick = { if (name.isNotBlank()) onConfirm(name, startDate, endDate) },
                 enabled = name.isNotBlank()
             ) {
-                Text("Add")
+                Text(confirmLabel)
             }
         },
         dismissButton = {

@@ -16,6 +16,10 @@ class MissionRepositoryImpl(
         dao.insertMission(mission.toMissionEntity())
     }
 
+    override suspend fun updateMission(mission: Mission) {
+        dao.updateMission(mission.toMissionEntity())
+    }
+
     override suspend fun deleteMission(mission: Mission) {
         dao.deleteMission(mission.toMissionEntity())
     }

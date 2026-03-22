@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.Missions.route) {
                             val viewModel: MissionsViewModel = viewModel(
-                                factory = MissionsViewModelFactory(missionRepository)
+                                factory = MissionsViewModelFactory(missionRepository, expenseRepository)
                             )
                             MissionsScreen(
                                 viewModel = viewModel,

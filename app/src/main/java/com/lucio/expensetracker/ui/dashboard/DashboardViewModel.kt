@@ -2,9 +2,11 @@ package com.lucio.expensetracker.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lucio.expensetracker.domain.model.Expense
 import com.lucio.expensetracker.domain.repository.ExpenseRepository
 import com.lucio.expensetracker.domain.repository.MissionRepository
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 class DashboardViewModel(
     private val expenseRepository: ExpenseRepository,
@@ -42,5 +44,11 @@ class DashboardViewModel(
 
     fun onMissionSelected(missionId: Long?) {
         _selectedMissionId.value = missionId
+    }
+
+    fun deleteExpense(expense: Expense) {
+        viewModelScope.launch {
+            expenseRepository.deleteExpense(expense)
+        }
     }
 }
