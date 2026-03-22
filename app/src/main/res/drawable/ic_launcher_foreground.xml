@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Receipt scanner and travel icons within 66x66 safe zone (21 to 87) -->
+
+    <!-- Receipt outline -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M35,25 L73,25 L73,83 L69,79 L65,83 L61,79 L57,83 L53,79 L49,83 L45,79 L41,83 L37,79 L35,81 Z" />
+
+    <!-- Scanning line -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M32,45 L76,45 L76,47 L32,47 Z" />
+
+    <!-- Plane icon (Travel) -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M54,35 L58,45 L68,45 L60,51 L63,61 L54,55 L45,61 L48,51 L40,45 L50,45 Z" />
+
+    <!-- Dollar sign on receipt -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M54,65 C51,65 49,63 49,61 L51,61 C51,62 52,63 54,63 C56,63 57,62 57,61 C57,60 56,59 54,58 C52,57 49,56 49,53 C49,51 51,49 54,49 C57,49 59,51 59,53 L57,53 C57,52 56,51 54,51 C52,51 51,52 51,53 C51,54 52,55 54,56 C56,57 59,58 59,61 C59,63 57,65 54,65 Z M53,48 L55,48 L55,50 L53,50 Z M53,64 L55,64 L55,66 L53,66 Z" />
+
+</vector>
