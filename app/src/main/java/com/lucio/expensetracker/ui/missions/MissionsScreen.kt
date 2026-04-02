@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,7 +26,8 @@ import java.util.*
 @Composable
 fun MissionsScreen(
     viewModel: MissionsViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onMissionClick: (Long) -> Unit
 ) {
     val missions by viewModel.missions.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
@@ -61,7 +63,8 @@ fun MissionsScreen(
                     mission = mission,
                     onEdit = { editingMission = mission },
                     onDelete = { viewModel.deleteMission(mission) },
-                    onGeneratePdf = { viewModel.generatePdfForMission(context, mission) }
+                    onGeneratePdf = { viewModel.generatePdfForMission(context, mission) },
+                    onViewDetails = { onMissionClick(mission.id) }
                 )
             }
         }
@@ -99,7 +102,8 @@ fun MissionItem(
     mission: Mission,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onGeneratePdf: () -> Unit
+    onGeneratePdf: () -> Unit,
+    onViewDetails: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -140,6 +144,13 @@ fun MissionItem(
                         Icons.Default.PictureAsPdf,
                         contentDescription = "Generate PDF",
                         tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                IconButton(onClick = onViewDetails) {
+                    Icon(
+                        Icons.Default.Visibility,
+                        contentDescription = "View Details",
+                        tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
                 IconButton(onClick = onEdit) {

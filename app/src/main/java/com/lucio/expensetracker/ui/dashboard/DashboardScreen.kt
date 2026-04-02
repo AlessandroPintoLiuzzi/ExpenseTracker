@@ -1,5 +1,6 @@
 package com.lucio.expensetracker.ui.dashboard
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,14 +14,17 @@ import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Train
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import com.lucio.expensetracker.domain.model.Expense
 import com.lucio.expensetracker.ui.theme.ExpenseTrackerTheme
 import java.text.SimpleDateFormat
@@ -34,6 +38,7 @@ fun DashboardScreen(
     onMissionsClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var expenseToShowDetails by remember { mutableStateOf<Expense?>(null) }
 
     Scaffold(
         topBar = {
@@ -60,10 +65,18 @@ fun DashboardScreen(
             uiState = uiState,
             onMissionSelected = { viewModel.onMissionSelected(it) },
             onDeleteExpense = { viewModel.deleteExpense(it) },
+            onViewExpenseDetails = { expenseToShowDetails = it },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         )
+
+        expenseToShowDetails?.let { expense ->
+            ExpenseDetailsDialog(
+                expense = expense,
+                onDismiss = { expenseToShowDetails = null }
+            )
+        }
     }
 }
 
@@ -72,6 +85,7 @@ fun DashboardContent(
     uiState: DashboardUiState,
     onMissionSelected: (Long?) -> Unit,
     onDeleteExpense: (Expense) -> Unit,
+    onViewExpenseDetails: (Expense) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -98,7 +112,8 @@ fun DashboardContent(
         items(uiState.expenses) { expense ->
             ExpenseItem(
                 expense = expense,
-                onDelete = { onDeleteExpense(expense) }
+                onDelete = { onDeleteExpense(expense) },
+                onViewDetails = { onViewExpenseDetails(expense) }
             )
         }
     }
@@ -219,7 +234,8 @@ fun CategorySummaryItem(label: String, amount: Double, icon: ImageVector) {
 @Composable
 fun ExpenseItem(
     expense: Expense,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onViewDetails: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -274,6 +290,13 @@ fun ExpenseItem(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error
                 )
+                IconButton(onClick = onViewDetails) {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "View Details",
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                    )
+                }
                 IconButton(onClick = onDelete) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -284,6 +307,51 @@ fun ExpenseItem(
             }
         }
     }
+}
+
+@Composable
+fun ExpenseDetailsDialog(
+    expense: Expense,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "${expense.category} Expense") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(text = "Amount: $${String.format("%.2f", expense.amount)}", fontWeight = FontWeight.Bold)
+                Text(text = "Date: ${formatDate(expense.date)}")
+                
+                if (expense.receiptPath != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "Receipt:", style = MaterialTheme.typography.labelLarge)
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = expense.receiptPath),
+                            contentDescription = "Receipt Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                } else {
+                    Text(text = "No receipt photo available.", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        }
+    )
 }
 
 fun formatDate(timestamp: Long): String {
@@ -307,7 +375,8 @@ fun DashboardPreview() {
                 totalHotel = 120.0
             ),
             onMissionSelected = {},
-            onDeleteExpense = {}
+            onDeleteExpense = {},
+            onViewExpenseDetails = {}
         )
     }
 }
